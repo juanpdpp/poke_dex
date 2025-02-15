@@ -1,4 +1,4 @@
-import 'package:poke_dex/models/summary_pokemon.dart';
+import 'package:poke_dex/models/pokemon_summary.dart';
 
 class ResponsePokemon {
   final int count;
