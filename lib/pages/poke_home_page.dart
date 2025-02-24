@@ -3,49 +3,78 @@ import 'package:poke_dex/models/pokemon_summary.dart';
 import 'package:poke_dex/pages/poke_info_page.dart';
 
 class PokeHomePage extends StatefulWidget {
-  final List<PokemonSummary> pokemonList;
+  final List<PokemonSummary> initialPokemonList;
+  final Future<List<PokemonSummary>> Function(int offset) loadMorePokemons;
 
-  const PokeHomePage({super.key, required this.pokemonList});
+  const PokeHomePage({
+    super.key,
+    required this.initialPokemonList,
+    required this.loadMorePokemons,
+  });
 
   @override
   State<PokeHomePage> createState() => _PokeHomePageState();
 }
 
 class _PokeHomePageState extends State<PokeHomePage> {
-  List<PokemonSummary> filteredPokemonList = [];
+  List<PokemonSummary> pokemonList = [];
+  final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
-  String _currentFilter = 'Crescente';
+  bool isLoadingMore = false;
+  int offset = 20;
 
   @override
   void initState() {
     super.initState();
-    filteredPokemonList = widget.pokemonList;
-    _applyFilter(_currentFilter);
+    pokemonList = widget.initialPokemonList;
+    _scrollController.addListener(_onScroll);
+
+    _searchController.addListener(() {
+      _filterPokemons(_searchController.text);
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent && !isLoadingMore) {
+      _loadMorePokemons();
+    }
+  }
+
+  Future<void> _loadMorePokemons() async {
+    setState(() {
+      isLoadingMore = true;
+    });
+
+    final newPokemons = await widget.loadMorePokemons(offset);
+
+    setState(() {
+      pokemonList.addAll(newPokemons);
+      offset += 20;
+      isLoadingMore = false;
+    });
   }
 
   void _applyFilter(String filter) {
     setState(() {
-      _currentFilter = filter;
       switch (filter) {
         case 'A a Z':
-          filteredPokemonList = List.from(widget.pokemonList)
-            ..sort((a, b) => a.name.compareTo(b.name));
+          pokemonList.sort((a, b) => a.name.compareTo(b.name));
           break;
         case 'Z a A':
-          filteredPokemonList = List.from(widget.pokemonList)
-            ..sort((a, b) => b.name.compareTo(a.name));
+          pokemonList.sort((a, b) => b.name.compareTo(a.name));
           break;
         case 'Crescente':
-          filteredPokemonList = List.from(widget.pokemonList)
-            ..sort((a, b) => widget.pokemonList
-                .indexOf(a)
-                .compareTo(widget.pokemonList.indexOf(b)));
+          pokemonList.sort((a, b) => pokemonList.indexOf(a).compareTo(pokemonList.indexOf(b)));
           break;
         case 'Decrescente':
-          filteredPokemonList = List.from(widget.pokemonList)
-            ..sort((a, b) => widget.pokemonList
-                .indexOf(b)
-                .compareTo(widget.pokemonList.indexOf(a)));
+          pokemonList.sort((a, b) => pokemonList.indexOf(b).compareTo(pokemonList.indexOf(a)));
           break;
       }
     });
@@ -61,14 +90,18 @@ class _PokeHomePageState extends State<PokeHomePage> {
 
   void _filterPokemons(String query) {
     setState(() {
-      filteredPokemonList = widget.pokemonList.where((pokemon) {
-        final originalIndex = widget.pokemonList.indexOf(pokemon);
-        final pokemonNumber = (originalIndex + 1).toString();
-        final pokemonName = pokemon.name.toLowerCase();
+      if (query.isEmpty) {
+        pokemonList = widget.initialPokemonList;
+      } else {
+        pokemonList = widget.initialPokemonList.where((pokemon) {
+          final originalIndex = widget.initialPokemonList.indexOf(pokemon);
+          final pokemonNumber = (originalIndex + 1).toString();
+          final pokemonName = pokemon.name.toLowerCase();
 
-        return pokemonName.contains(query.toLowerCase()) ||
-            pokemonNumber.contains(query);
-      }).toList();
+          return pokemonName.contains(query.toLowerCase()) ||
+              pokemonNumber.contains(query);
+        }).toList();
+      }
     });
   }
 
@@ -237,17 +270,22 @@ class _PokeHomePageState extends State<PokeHomePage> {
                   ),
                 ),
                 style: const TextStyle(color: Colors.black),
-                onChanged: _filterPokemons,
               ),
             ),
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: filteredPokemonList.length,
+              controller: _scrollController,
+              itemCount: pokemonList.length + (isLoadingMore ? 1 : 0),
               itemBuilder: (context, index) {
-                final pokemon = filteredPokemonList[index];
-                final originalIndex = widget.pokemonList.indexOf(pokemon);
-                final pokemonNumber = originalIndex + 1;
+                if (index == pokemonList.length) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+
+                final pokemon = pokemonList[index];
+                final pokemonNumber = index + 1;
 
                 return Card(
                   margin: const EdgeInsets.symmetric(
