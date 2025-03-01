@@ -1,15 +1,18 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:poke_dex/models/pokemon_summary.dart';
 import 'package:poke_dex/pages/poke_info_page.dart';
+import 'package:poke_dex/pages/poke_options_page.dart'; // Add this import
 
 class PokeHomePage extends StatefulWidget {
   final List<PokemonSummary> initialPokemonList;
-  final Future<List<PokemonSummary>> Function(int offset) loadMorePokemons;
+  final Future<List<PokemonSummary>> Function(String query) searchPokemons;
 
   const PokeHomePage({
     super.key,
     required this.initialPokemonList,
-    required this.loadMorePokemons,
+    required this.searchPokemons,
   });
 
   @override
@@ -18,66 +21,27 @@ class PokeHomePage extends StatefulWidget {
 
 class _PokeHomePageState extends State<PokeHomePage> {
   List<PokemonSummary> pokemonList = [];
-  final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
-  bool isLoadingMore = false;
-  int offset = 20;
+  Timer? _debounceTimer;
 
   @override
   void initState() {
     super.initState();
     pokemonList = widget.initialPokemonList;
-    _scrollController.addListener(_onScroll);
 
     _searchController.addListener(() {
-      _filterPokemons(_searchController.text);
+      if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
+      _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+        _filterPokemons(_searchController.text);
+      });
     });
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
     _searchController.dispose();
+    _debounceTimer?.cancel();
     super.dispose();
-  }
-
-  void _onScroll() {
-    if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent && !isLoadingMore) {
-      _loadMorePokemons();
-    }
-  }
-
-  Future<void> _loadMorePokemons() async {
-    setState(() {
-      isLoadingMore = true;
-    });
-
-    final newPokemons = await widget.loadMorePokemons(offset);
-
-    setState(() {
-      pokemonList.addAll(newPokemons);
-      offset += 20;
-      isLoadingMore = false;
-    });
-  }
-
-  void _applyFilter(String filter) {
-    setState(() {
-      switch (filter) {
-        case 'A a Z':
-          pokemonList.sort((a, b) => a.name.compareTo(b.name));
-          break;
-        case 'Z a A':
-          pokemonList.sort((a, b) => b.name.compareTo(a.name));
-          break;
-        case 'Crescente':
-          pokemonList.sort((a, b) => pokemonList.indexOf(a).compareTo(pokemonList.indexOf(b)));
-          break;
-        case 'Decrescente':
-          pokemonList.sort((a, b) => pokemonList.indexOf(b).compareTo(pokemonList.indexOf(a)));
-          break;
-      }
-    });
   }
 
   void _onPokemonCardPressed(BuildContext context, PokemonSummary pokemon) {
@@ -88,20 +52,17 @@ class _PokeHomePageState extends State<PokeHomePage> {
     );
   }
 
-  void _filterPokemons(String query) {
-    setState(() {
-      if (query.isEmpty) {
+  Future<void> _filterPokemons(String query) async {
+    if (query.isEmpty) {
+      setState(() {
         pokemonList = widget.initialPokemonList;
-      } else {
-        pokemonList = widget.initialPokemonList.where((pokemon) {
-          final originalIndex = widget.initialPokemonList.indexOf(pokemon);
-          final pokemonNumber = (originalIndex + 1).toString();
-          final pokemonName = pokemon.name.toLowerCase();
+      });
+      return;
+    }
 
-          return pokemonName.contains(query.toLowerCase()) ||
-              pokemonNumber.contains(query);
-        }).toList();
-      }
+    final results = await widget.searchPokemons(query);
+    setState(() {
+      pokemonList = results;
     });
   }
 
@@ -126,118 +87,15 @@ class _PokeHomePageState extends State<PokeHomePage> {
         centerTitle: true,
         elevation: 0,
         actions: [
-          PopupMenuButton<String>(
-            onSelected: _applyFilter,
-            itemBuilder: (BuildContext context) {
-              return [
-                PopupMenuItem(
-                  value: 'A a Z',
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 12.0, horizontal: 16.0),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[800],
-                      borderRadius: BorderRadius.circular(10.0),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 5,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'A a Z',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
+          IconButton(
+            icon: const Icon(FontAwesomeIcons.gear, color: Colors.white),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const OptionsPage(),
                 ),
-                PopupMenuItem(
-                  value: 'Z a A',
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 12.0, horizontal: 16.0),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[800],
-                      borderRadius: BorderRadius.circular(10.0),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 5,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'Z a A',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'Crescente',
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 12.0, horizontal: 16.0),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[800],
-                      borderRadius: BorderRadius.circular(10.0),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 5,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'Crescente',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'Decrescente',
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 12.0, horizontal: 16.0),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[800],
-                      borderRadius: BorderRadius.circular(10.0),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 5,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'Decrescente',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ),
-              ];
+              );
             },
-            icon: const Icon(Icons.filter_list, color: Colors.white),
-            color: Colors.grey[900],
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.0),
-            ),
           ),
         ],
       ),
@@ -275,17 +133,13 @@ class _PokeHomePageState extends State<PokeHomePage> {
           ),
           Expanded(
             child: ListView.builder(
-              controller: _scrollController,
-              itemCount: pokemonList.length + (isLoadingMore ? 1 : 0),
+              itemCount: pokemonList.length,
               itemBuilder: (context, index) {
-                if (index == pokemonList.length) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
-
                 final pokemon = pokemonList[index];
-                final pokemonNumber = index + 1;
+                final pokemonNumber =
+                    widget.initialPokemonList.contains(pokemon)
+                        ? widget.initialPokemonList.indexOf(pokemon) + 1
+                        : index + 1;
 
                 return Card(
                   margin: const EdgeInsets.symmetric(
@@ -306,11 +160,8 @@ class _PokeHomePageState extends State<PokeHomePage> {
                             pokemon.imageUrl,
                             width: 50,
                             height: 50,
-                            errorBuilder: (BuildContext context,
-                                Object exception, StackTrace? stackTrace) {
-                              return const Icon(Icons.error,
-                                  color: Colors.white);
-                            },
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Icon(Icons.error, color: Colors.white),
                           ),
                           const SizedBox(width: 16),
                           Text(

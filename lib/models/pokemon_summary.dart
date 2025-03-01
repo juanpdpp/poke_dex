@@ -37,94 +37,28 @@ class PokemonSummary {
 
   factory PokemonSummary.fromMap(Map<String, dynamic> map) {
     final pokemonNumber = map['url'].split('/').reversed.elementAt(1);
-    final imageUrl =
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$pokemonNumber.png';
-    final shinyImageUrl =
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/$pokemonNumber.png';
-    final gifUrl =
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/$pokemonNumber.gif';
-    final shinyGifUrl =
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/shiny/$pokemonNumber.gif';
-
-    final stats = <String, int>{};
-    if (map['stats'] != null) {
-      for (var stat in map['stats']) {
-        final statName = stat['stat']['name'] as String;
-        final statValue = stat['base_stat'] as int;
-        stats[statName] = statValue;
-      }
-    }
-
-    final movesByLevel = <Move>[];
-    final movesByTM = <Move>[];
-    if (map['moves'] != null) {
-      for (var move in map['moves']) {
-        final moveName = move['move']['name'] as String;
-        final moveDetails = move['version_group_details'] as List;
-        for (var detail in moveDetails) {
-          final method = detail['move_learn_method']['name'] as String;
-          if (method == 'level-up') {
-            final levelLearned = detail['level_learned_at'] as int;
-            if (!movesByLevel.any((m) => m.name == moveName)) {
-              movesByLevel
-                  .add(Move(name: moveName, levelLearned: levelLearned));
-            }
-          } else if (method == 'machine') {
-            if (!movesByTM.any((m) => m.name == moveName)) {
-              movesByTM.add(Move(name: moveName));
-            }
-          }
-        }
-      }
-    }
 
     return PokemonSummary(
       name: map['name'] as String,
       url: map['url'] as String,
-      imageUrl: imageUrl,
-      shinyImageUrl: shinyImageUrl,
-      gifUrl: gifUrl,
-      shinyGifUrl: shinyGifUrl,
+      imageUrl:
+          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$pokemonNumber.png',
+      shinyImageUrl:
+          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/$pokemonNumber.png',
+      gifUrl:
+          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/$pokemonNumber.gif',
+      shinyGifUrl:
+          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/shiny/$pokemonNumber.gif',
       types: [],
       generation: '',
       abilities: [],
       weight: 0.0,
       height: 0.0,
-      stats: stats,
-      movesByLevel: movesByLevel,
-      movesByTM: movesByTM,
+      stats: {},
+      movesByLevel: [],
+      movesByTM: [],
       evolutions: [],
     );
-  }
-
-  String formatGeneration() {
-    final romanNumeral = generation.split('-').last;
-    return _generationToLocation(romanNumeral);
-  }
-
-  String _generationToLocation(String romanNumeral) {
-    switch (romanNumeral.toLowerCase()) {
-      case 'i':
-        return 'Kanto';
-      case 'ii':
-        return 'Johto';
-      case 'iii':
-        return 'Hoenn';
-      case 'iv':
-        return 'Sinnoh';
-      case 'v':
-        return 'Unova';
-      case 'vi':
-        return 'Kalos';
-      case 'vii':
-        return 'Alola';
-      case 'viii':
-        return 'Galar';
-      case 'ix':
-        return 'Paldea';
-      default:
-        return 'Unknown Region';
-    }
   }
 
   Color getTypeColor(String type) {
@@ -165,10 +99,6 @@ class PokemonSummary {
         return Colors.deepPurple;
       case 'steel':
         return Colors.blueGrey;
-      case 'unknown':
-        return Colors.grey[800]!;
-      case 'shadow':
-        return Colors.black;
       default:
         return Colors.grey;
     }
@@ -193,6 +123,8 @@ class Evolution {
   final String shinyImageUrl;
   final String gifUrl;
   final String shinyGifUrl;
+  final List<Evolution> nextEvolutions;
+  final String? trigger;
 
   Evolution({
     required this.name,
@@ -200,5 +132,22 @@ class Evolution {
     required this.shinyImageUrl,
     required this.gifUrl,
     required this.shinyGifUrl,
+    this.nextEvolutions = const [],
+    this.trigger,
   });
+
+  Evolution copyWith({
+    List<Evolution>? nextEvolutions,
+    String? trigger,
+  }) {
+    return Evolution(
+      name: name,
+      imageUrl: imageUrl,
+      shinyImageUrl: shinyImageUrl,
+      gifUrl: gifUrl,
+      shinyGifUrl: shinyGifUrl,
+      nextEvolutions: nextEvolutions ?? this.nextEvolutions,
+      trigger: trigger ?? this.trigger,
+    );
+  }
 }
