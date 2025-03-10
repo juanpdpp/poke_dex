@@ -14,6 +14,7 @@ class SplashPage extends StatefulWidget {
 class _SplashPageState extends State<SplashPage> {
   List<PokemonSummary> pokemonList = [];
   bool isLoading = true;
+  String? errorMessage;
 
   @override
   void initState() {
@@ -24,24 +25,30 @@ class _SplashPageState extends State<SplashPage> {
   Future<void> _getPokemons() async {
     final dio = Dio();
     try {
-      // First get total Pokémon count
-      final countResponse = await dio.get('https://pokeapi.co/api/v2/pokemon');
-      final totalCount = countResponse.data['count'];
+      List<PokemonSummary> allPokemons = [];
+      int offset = 0;
+      const int limit = 100; // Carrega 100 Pokémon por vez
 
-      // Fetch all Pokémon
-      final response = await dio.get(
-        'https://pokeapi.co/api/v2/pokemon?limit=$totalCount',
-      );
+      while (true) {
+        final response = await dio.get(
+          'https://pokeapi.co/api/v2/pokemon?limit=$limit&offset=$offset',
+        );
+        final model = ResponsePokemon.fromMap(response.data);
+        allPokemons.addAll(model.result);
 
-      var model = ResponsePokemon.fromMap(response.data);
+        // Se a resposta tiver menos Pokémon que o limite, para o loop
+        if (model.result.length < limit) break;
+        offset += limit;
+      }
 
       setState(() {
-        pokemonList = model.result;
+        pokemonList = allPokemons;
         isLoading = false;
       });
 
-      if (!isLoading) {
-        await Future.delayed(const Duration(milliseconds: 500));
+      // Navega para a PokeHomePage após um pequeno delay
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (mounted) {
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) =>
@@ -61,9 +68,10 @@ class _SplashPageState extends State<SplashPage> {
         );
       }
     } catch (e) {
-      // Handle error appropriately
-      print('Error fetching Pokémon: $e');
-      setState(() => isLoading = false);
+      setState(() {
+        isLoading = false;
+        errorMessage = 'Erro ao carregar Pokémon: $e';
+      });
     }
   }
 
@@ -104,6 +112,31 @@ class _SplashPageState extends State<SplashPage> {
               const CircularProgressIndicator(
                 color: Colors.white,
               ),
+            if (errorMessage != null) ...[
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  errorMessage!,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _getPokemons,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                ),
+                child: const Text(
+                  'Tentar novamente',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
           ],
         ),
       ),
