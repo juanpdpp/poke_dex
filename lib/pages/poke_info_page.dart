@@ -420,7 +420,7 @@ class _PokemonInfoPageState extends State<PokemonInfoPage> {
       child: Container(
         padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
-          color: Color.fromARGB(255, 48, 44, 44),
+          color: Colors.black54,
           borderRadius: BorderRadius.circular(20),
         ),
         child: const Icon(
@@ -454,13 +454,12 @@ class _PokemonInfoPageState extends State<PokemonInfoPage> {
     const double labelFontSize = 9;
 
     final Map<String, Color> typeColors = {
-      'HP': Color.fromARGB(255, 224, 224, 224),
-      'ATK': Color.fromARGB(255, 224, 224, 224),
-      'DEF': Color.fromARGB(255, 224, 224, 224),
-      'STK': Color.fromARGB(255, 224, 224, 224),
-      'SDF': Color.fromARGB(255, 224, 224, 224),
-      'SPD': Color.fromARGB(255, 224, 224, 224),
-      //colors e color (se prexisar trocar)
+      'HP': Colors.red[400]!,
+      'ATK': Colors.orange[400]!,
+      'DEF': Colors.blue[400]!,
+      'STK': Colors.red[800]!,
+      'SDF': Colors.purple[400]!,
+      'SPD': Colors.yellow[600]!,
     };
 
     final Map<String, IconData> typeIcons = {
@@ -473,10 +472,10 @@ class _PokemonInfoPageState extends State<PokemonInfoPage> {
     };
 
     final Color dynamicColor = value < 50
-        ? Colors.red[600]!
+        ? Colors.red[400]!
         : value < 100
-            ? const Color.fromARGB(255, 255, 179, 0)!
-            : Colors.green[600]!;
+            ? Colors.orange[400]!
+            : Colors.green[400]!;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),

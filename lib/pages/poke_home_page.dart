@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:poke_dex/models/pokemon_summary.dart';
 import 'package:poke_dex/pages/poke_info_page.dart';
-import 'package:poke_dex/pages/poke_options_page.dart'; // Add this import
 
 class PokeHomePage extends StatefulWidget {
   final List<PokemonSummary> initialPokemonList;
@@ -42,6 +40,25 @@ class _PokeHomePageState extends State<PokeHomePage> {
     _searchController.dispose();
     _debounceTimer?.cancel();
     super.dispose();
+  }
+
+  void _applyFilter(String filter) {
+    setState(() {
+      switch (filter) {
+        case 'A a Z':
+          pokemonList.sort((a, b) => a.name.compareTo(b.name));
+          break;
+        case 'Z a A':
+          pokemonList.sort((a, b) => b.name.compareTo(a.name));
+          break;
+        case 'Crescente':
+          pokemonList = widget.initialPokemonList;
+          break;
+        case 'Decrescente':
+          pokemonList = widget.initialPokemonList.reversed.toList();
+          break;
+      }
+    });
   }
 
   void _onPokemonCardPressed(BuildContext context, PokemonSummary pokemon) {
@@ -87,15 +104,74 @@ class _PokeHomePageState extends State<PokeHomePage> {
         centerTitle: true,
         elevation: 0,
         actions: [
-          IconButton(
-            icon: const Icon(FontAwesomeIcons.gear, color: Colors.white),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const OptionsPage(),
+          PopupMenuButton<String>(
+            onSelected: _applyFilter,
+            itemBuilder: (BuildContext context) => [
+              PopupMenuItem(
+                value: 'A a Z',
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 12.0, horizontal: 16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[800],
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  child: const Center(
+                    child: Text('A a Z', style: TextStyle(color: Colors.white)),
+                  ),
                 ),
-              );
-            },
+              ),
+              PopupMenuItem(
+                value: 'Z a A',
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 12.0, horizontal: 16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[800],
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  child: const Center(
+                    child: Text('Z a A', style: TextStyle(color: Colors.white)),
+                  ),
+                ),
+              ),
+              PopupMenuItem(
+                value: 'Crescente',
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 12.0, horizontal: 16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[800],
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  child: const Center(
+                    child: Text('Crescente',
+                        style: TextStyle(color: Colors.white)),
+                  ),
+                ),
+              ),
+              PopupMenuItem(
+                value: 'Decrescente',
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 12.0, horizontal: 16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[800],
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  child: const Center(
+                    child: Text('Decrescente',
+                        style: TextStyle(color: Colors.white)),
+                  ),
+                ),
+              ),
+            ],
+            icon: const Icon(Icons.filter_list, color: Colors.white),
+            color: Colors.grey[900],
           ),
         ],
       ),

@@ -36,7 +36,7 @@ class _OptionsPageState extends State<OptionsPage> {
                   setState(() {
                     _isDarkMode = value;
                   });
-                  // botar a logica de mudar o temaaqui
+                  // logic to change theme
                 },
                 activeTrackColor: Colors.red[200],
                 activeColor: Colors.red[800],
@@ -58,7 +58,7 @@ class _OptionsPageState extends State<OptionsPage> {
                   setState(() {
                     _selectedLanguage = newValue!;
                   });
-                  //logica genial pra mudar a merdad od idioma
+                  //logic to change language
                 },
                 items: _languages.map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
