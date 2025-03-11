@@ -163,8 +163,9 @@ class _PokemonInfoPageState extends State<PokemonInfoPage> {
   String? _getTrigger(List<dynamic> details) {
     if (details.isEmpty) return null;
     final d = details.first;
-    if (d['item'] != null)
+    if (d['item'] != null) {
       return 'Usar ${_capitalize((d['item']['name'] as String).replaceAll('-', ' '))}';
+    }
     if (d['min_level'] != null) return 'Nível ${d['min_level']}';
     if (d['trigger']['name'] == 'trade') return 'Troca';
     return _capitalize(d['trigger']['name'].toString().replaceAll('-', ' '));
@@ -296,6 +297,7 @@ class _PokemonInfoPageState extends State<PokemonInfoPage> {
 
   Widget _buildPokemonHeader(PokemonSummary pokemon) {
     final gifUrl = _isShiny ? pokemon.shinyGifUrl : pokemon.gifUrl;
+    final imagUrl = _isShiny ? pokemon.shinyImageUrl : pokemon.imageUrl;
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -317,16 +319,7 @@ class _PokemonInfoPageState extends State<PokemonInfoPage> {
             ),
             child: Stack(
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.network(
-                    gifUrl,
-                    width: 150,
-                    height: 150,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.error, color: Colors.white, size: 50),
-                  ),
-                ),
+                _buildImage(gifUrl, imagUrl),
                 Positioned(
                   bottom: 8,
                   right: 8,
@@ -348,6 +341,54 @@ class _PokemonInfoPageState extends State<PokemonInfoPage> {
         ],
       ),
     );
+  }
+
+  FutureBuilder _buildImage(String gifUrl, String imagUrl) {
+    return FutureBuilder(
+      future: _testGifUrl(gifUrl),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.hasData == false) {
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.network(
+                imagUrl,
+                width: 150,
+                height: 150,
+                errorBuilder: (context, error, stackTrace) =>
+                    const Icon(Icons.error, color: Colors.white, size: 50),
+              ),
+            );
+          } else {
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.network(
+                gifUrl,
+                width: 150,
+                height: 150,
+                errorBuilder: (context, error, stackTrace) =>
+                    const Icon(Icons.error, color: Colors.white, size: 50),
+              ),
+            );
+          }
+        }
+        return CircularProgressIndicator();
+      },
+    );
+  }
+
+  Future<Response<dynamic>?> _testGifUrl(String gifUrl) async {
+    try {
+      var value = await Dio().get(gifUrl);
+      return Response(
+          requestOptions: RequestOptions(
+        data: value,
+      ));
+    } on DioException catch (e) {
+      return null;
+    } catch (ex) {
+      return null;
+    }
   }
 
   Widget _buildDescription(String title, double value, String unit) {
@@ -475,7 +516,7 @@ class _PokemonInfoPageState extends State<PokemonInfoPage> {
     final Color dynamicColor = value < 50
         ? Colors.red[600]!
         : value < 100
-            ? const Color.fromARGB(255, 255, 179, 0)!
+            ? const Color.fromARGB(255, 255, 179, 0)
             : Colors.green[600]!;
 
     return Padding(

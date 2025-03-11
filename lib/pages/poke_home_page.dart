@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:poke_dex/models/pokemon_summary.dart';
 import 'package:poke_dex/pages/poke_info_page.dart';
-import 'package:poke_dex/pages/poke_options_page.dart'; // Add this import
+import 'package:poke_dex/pages/poke_options_page.dart';
 
 class PokeHomePage extends StatefulWidget {
   final List<PokemonSummary> initialPokemonList;
