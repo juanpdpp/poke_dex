@@ -125,6 +125,7 @@ class Evolution {
   final String shinyGifUrl;
   final List<Evolution> nextEvolutions;
   final String? trigger;
+  final String url;
 
   Evolution({
     required this.name,
@@ -134,6 +135,7 @@ class Evolution {
     required this.shinyGifUrl,
     this.nextEvolutions = const [],
     this.trigger,
+    required this.url,
   });
 
   Evolution copyWith({
@@ -141,13 +143,13 @@ class Evolution {
     String? trigger,
   }) {
     return Evolution(
-      name: name,
-      imageUrl: imageUrl,
-      shinyImageUrl: shinyImageUrl,
-      gifUrl: gifUrl,
-      shinyGifUrl: shinyGifUrl,
-      nextEvolutions: nextEvolutions ?? this.nextEvolutions,
-      trigger: trigger ?? this.trigger,
-    );
+        name: name,
+        imageUrl: imageUrl,
+        shinyImageUrl: shinyImageUrl,
+        gifUrl: gifUrl,
+        shinyGifUrl: shinyGifUrl,
+        nextEvolutions: nextEvolutions ?? this.nextEvolutions,
+        trigger: trigger ?? this.trigger,
+        url: url);
   }
 }

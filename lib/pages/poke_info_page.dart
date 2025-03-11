@@ -146,6 +146,8 @@ class _PokemonInfoPageState extends State<PokemonInfoPage> {
       Map<String, dynamic> species, List<dynamic> details,
       {String? previousTrigger}) {
     final id = _extractId(species['url'] as String);
+    final pokemonUrl =
+        'https://pokeapi.co/api/v2/pokemon/$id/'; // Generate Pokemon URL
     return Evolution(
       name: _capitalize(species['name'] as String),
       imageUrl:
@@ -157,6 +159,7 @@ class _PokemonInfoPageState extends State<PokemonInfoPage> {
       shinyGifUrl:
           'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/shiny/$id.gif',
       trigger: previousTrigger ?? _getTrigger(details),
+      url: pokemonUrl, // Assign the generated URL
     );
   }
 
@@ -384,7 +387,7 @@ class _PokemonInfoPageState extends State<PokemonInfoPage> {
           requestOptions: RequestOptions(
         data: value,
       ));
-    } on DioException catch (e) {
+    } on DioException {
       return null;
     } catch (ex) {
       return null;
@@ -667,67 +670,94 @@ class _PokemonInfoPageState extends State<PokemonInfoPage> {
 
   Widget _buildEvolutionCard(Evolution evolution) {
     final gifUrl = _isShiny ? evolution.shinyGifUrl : evolution.gifUrl;
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey[850]!.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: 120,
-            height: 120,
-            child: Image.network(
-              gifUrl,
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.center,
-              filterQuality: FilterQuality.high,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return Center(
-                  child: CircularProgressIndicator(
-                    value: loadingProgress.expectedTotalBytes != null
-                        ? loadingProgress.cumulativeBytesLoaded /
-                            loadingProgress.expectedTotalBytes!
-                        : null,
-                    color: Colors.red[800],
+    return InkWell(
+        onTap: () {
+          // Create a minimal PokemonSummary using evolution data
+          final pokemonSummary = PokemonSummary(
+            name: evolution.name,
+            url: evolution.url,
+            imageUrl: evolution.imageUrl,
+            shinyImageUrl: evolution.shinyImageUrl,
+            gifUrl: evolution.gifUrl,
+            shinyGifUrl: evolution.shinyGifUrl,
+            types: [], // Will be fetched
+            generation: '',
+            abilities: [],
+            weight: 0,
+            height: 0,
+            stats: {},
+            movesByLevel: [],
+            movesByTM: [],
+            evolutions: [],
+          );
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PokemonInfoPage(pokemon: pokemonSummary),
+            ),
+          );
+        },
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.grey[850]!.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 120,
+                height: 120,
+                child: Image.network(
+                  gifUrl,
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.center,
+                  filterQuality: FilterQuality.high,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Center(
+                      child: CircularProgressIndicator(
+                        value: loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes!
+                            : null,
+                        color: Colors.red[800],
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) => Icon(
+                    // Corrigido aqui
+                    Icons.error_outline,
+                    color: Colors.grey[800],
+                    size: 40,
                   ),
-                );
-              },
-              errorBuilder: (context, error, stackTrace) => Icon(
-                // Corrigido aqui
-                Icons.error_outline,
-                color: Colors.grey[800],
-                size: 40,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            evolution.name,
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          if (evolution.trigger != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                evolution.trigger!,
-                style: TextStyle(
-                  color: Colors.grey[300],
-                  fontSize: 12,
-                  fontStyle: FontStyle.italic,
                 ),
               ),
-            ),
-        ],
-      ),
-    );
+              const SizedBox(height: 12),
+              Text(
+                evolution.name,
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              if (evolution.trigger != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    evolution.trigger!,
+                    style: TextStyle(
+                      color: Colors.grey[300],
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ));
   }
 }
