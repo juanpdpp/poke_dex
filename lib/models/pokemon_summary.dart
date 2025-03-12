@@ -37,18 +37,19 @@ class PokemonSummary {
 
   factory PokemonSummary.fromMap(Map<String, dynamic> map) {
     final pokemonNumber = map['url'].split('/').reversed.elementAt(1);
+    final parsedNumber = int.parse(pokemonNumber);
 
     return PokemonSummary(
       name: map['name'] as String,
       url: map['url'] as String,
       imageUrl:
-          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$pokemonNumber.png',
+          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$parsedNumber.png',
       shinyImageUrl:
-          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/$pokemonNumber.png',
+          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/$parsedNumber.png',
       gifUrl:
-          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/$pokemonNumber.gif',
+          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/$parsedNumber.gif',
       shinyGifUrl:
-          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/shiny/$pokemonNumber.gif',
+          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/shiny/$parsedNumber.gif',
       types: [],
       generation: '',
       abilities: [],
@@ -113,8 +114,9 @@ class PokemonSummary {
 class Move {
   final String name;
   final int? levelLearned;
+  final String url;
 
-  Move({required this.name, this.levelLearned});
+  Move({required this.name, this.levelLearned, required this.url});
 }
 
 class Evolution {
@@ -125,6 +127,7 @@ class Evolution {
   final String shinyGifUrl;
   final List<Evolution> nextEvolutions;
   final String? trigger;
+  final String url;
 
   Evolution({
     required this.name,
@@ -134,7 +137,24 @@ class Evolution {
     required this.shinyGifUrl,
     this.nextEvolutions = const [],
     this.trigger,
+    required this.url,
   });
+
+  factory Evolution.fromPokemonNumber(String pokemonNumber, String name) {
+    final parsedNumber = int.parse(pokemonNumber);
+    return Evolution(
+      name: name,
+      imageUrl:
+          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$parsedNumber.png',
+      shinyImageUrl:
+          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/$parsedNumber.png',
+      gifUrl:
+          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/$parsedNumber.gif',
+      shinyGifUrl:
+          'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/shiny/$parsedNumber.gif',
+      url: 'https://pokeapi.co/api/v2/pokemon/$parsedNumber/',
+    );
+  }
 
   Evolution copyWith({
     List<Evolution>? nextEvolutions,
@@ -146,8 +166,9 @@ class Evolution {
       shinyImageUrl: shinyImageUrl,
       gifUrl: gifUrl,
       shinyGifUrl: shinyGifUrl,
-      nextEvolutions: nextEvolutions ?? this.nextEvolutions,
+      nextEvolutions: nextEvolutions ?? [],
       trigger: trigger ?? this.trigger,
+      url: url,
     );
   }
 }

@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:poke_dex/models/pokemon_summary.dart';
 import 'package:poke_dex/pages/poke_info_page.dart';
-import 'package:poke_dex/pages/poke_options_page.dart';
 
 class PokeHomePage extends StatefulWidget {
   final List<PokemonSummary> initialPokemonList;
@@ -86,18 +84,6 @@ class _PokeHomePageState extends State<PokeHomePage> {
         ),
         centerTitle: true,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(FontAwesomeIcons.gear, color: Colors.white),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const OptionsPage(),
-                ),
-              );
-            },
-          ),
-        ],
       ),
       body: Column(
         children: [
