@@ -636,15 +636,15 @@ class _PokemonInfoPageState extends State<PokemonInfoPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _buildStatItem(
-                        damageClass: 'physical',
+                        damageClass: 'power',
                         value: details['power']?.toString() ?? '—',
                       ),
                       _buildStatItem(
-                        damageClass: 'special',
+                        damageClass: 'accuracy',
                         value: details['accuracy']?.toString() ?? '—',
                       ),
                       _buildStatItem(
-                        damageClass: 'status',
+                        damageClass: 'pp',
                         value: details['pp']?.toString() ?? '—',
                       ),
                     ],
@@ -772,7 +772,7 @@ class _PokemonInfoPageState extends State<PokemonInfoPage> {
 
   (Widget, Color) _getDamageClassIcon(String damageClass) {
     switch (damageClass.toLowerCase()) {
-      case 'physical':
+      case 'power':
         return (
           SvgPicture.asset(
             'assets/icons/physical.svg',
@@ -781,7 +781,7 @@ class _PokemonInfoPageState extends State<PokemonInfoPage> {
           ),
           Colors.red[400]!
         );
-      case 'special':
+      case 'accuracy':
         return (
           SvgPicture.asset(
             'assets/icons/special.svg',
@@ -790,7 +790,7 @@ class _PokemonInfoPageState extends State<PokemonInfoPage> {
           ),
           Colors.blue[400]!
         );
-      case 'status':
+      case 'pp':
         return (
           SvgPicture.asset(
             'assets/icons/status.svg',
@@ -809,11 +809,11 @@ class _PokemonInfoPageState extends State<PokemonInfoPage> {
 
   Color _getDamageClassColor(String damageClass) {
     switch (damageClass.toLowerCase()) {
-      case 'physical':
+      case 'power':
         return Colors.red[400]!;
-      case 'special':
+      case 'accuracy':
         return Colors.blue[400]!;
-      case 'status':
+      case 'pp':
         return Colors.grey[400]!;
       default:
         return Colors.grey;
